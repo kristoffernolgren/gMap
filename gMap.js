@@ -11,9 +11,6 @@ directive('gMap', function(googleMaps, $timeout){
 		template: "<div ng-transclude></div>",
 		scope: true,
 		link: function(scope, element, attrs){
-			scope.$on('location', function(){
-				//här ska den recentreras
-			})
 			$timeout(function(){
 			//create the map
 			var center = googleMaps.makePosition(attrs.centerlat, attrs.centerlong)
