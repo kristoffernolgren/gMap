@@ -11,6 +11,9 @@ directive('gMap', function(googleMaps, $timeout){
 		template: "<div ng-transclude></div>",
 		scope: true,
 		link: function(scope, element, attrs){
+			scope.$on('location', function(){
+				//här ska den recentreras
+			})
 			$timeout(function(){
 			//create the map
 			var center = googleMaps.makePosition(attrs.centerlat, attrs.centerlong)
@@ -54,13 +57,34 @@ directive('gDirection', function(googleMaps, $timeout){
 		restrict: 'E',
 		scope: true,
 		link: function(scope, element, attrs, mapCtrl){
-			$timeout(function(){
+			scope.direction = {}
+			var update = function()
+			{
+				googleMaps.removeDirection(scope.direction)
+				addDirection();
+			}
+			var addDirection = function()
+			{
+			$timeout(function()
+				{
+					var origin = googleMaps.makePosition(attrs.originlat, attrs.originlong);
+					var destination = googleMaps.makePosition(attrs.destinationlat, attrs.destinationlong);
+					var map = mapCtrl.getMap();
+					scope.direction = googleMaps.addDirection(map,origin,destination,attrs.travelmode)
 
-				var origin = googleMaps.makePosition(attrs.originlat, attrs.originlong);
-				var destination = googleMaps.makePosition(attrs.destinationlat, attrs.destinationlong);
-				var map = mapCtrl.getMap();
-				googleMaps.addDirection(map,origin,destination,attrs.travelmode)
-	    	}, 10); 
+
+		    	}, 10);
+			}
+			addDirection();
+
+			$timeout(function()
+			{
+				attrs.$observe('originlong', update);
+				attrs.$observe('originlat', update);
+				attrs.$observe('destinationlong', update);
+				attrs.$observe('destinationlat', update);
+				attrs.$observe('travelMode', update);
+			},1000)
 		}
 	}
 }).
@@ -121,6 +145,10 @@ service('googleMaps', function(){
 					console.log(status)
 				}
 			});
+			return directionsDisplay;
 		},
+		removeDirection: function(direction){
+			direction.setMap(null);
+		}
 	}
 });
